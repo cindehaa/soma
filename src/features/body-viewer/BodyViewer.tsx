@@ -17,7 +17,7 @@ export function BodyViewer() {
       style={{ width: '100%', height: 700 }}
     >
       <Canvas
-        camera={{ position: [0, 1.2, 15], fov: 50 }}
+        camera={{ position: [0, 1.2, 10], fov: 45 }}
         style={{ width: '100%', height: '100%' }}
         fallback={
           <div className="flex items-center justify-center w-full h-full text-slate-600 text-sm bg-slate-200">
@@ -38,8 +38,8 @@ export function BodyViewer() {
           <BodyModel
             onSelectRegion={setSelectedBodyRegion}
             highlightedRegion={selectedBodyRegion}
-            yOffset={-5}
-            proxyScale={1.8}
+            yOffset={0}
+            proxyScale={40}
             proxyZOffset={0.6}
           />
         </Suspense>
@@ -49,8 +49,8 @@ export function BodyViewer() {
           enableZoom
           enableRotate
           target={[0, 1, 0]}
-          minDistance={1000}
-          maxDistance={2000}
+          minDistance={1}
+          maxDistance={3}
         />
       </Canvas>
     </div>
