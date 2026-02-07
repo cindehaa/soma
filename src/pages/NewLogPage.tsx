@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BODY_REGIONS, BODY_REGION_LABELS, type BodyRegionId } from '../types'
+import { useHealthLogs } from '../hooks/useHealthLogs'
 
 /**
  * PR-01/PR-03: New Log form. Region comes from body click or manual choice.
+ * Now persists to Supabase via Auth0 + Supabase integration.
  */
 export function NewLogPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const state = location.state as { bodyRegion?: BodyRegionId } | null
   const initialRegion = state?.bodyRegion ?? null
+  const { createLog, isLoading: isSaving } = useHealthLogs()
 
   // Form state
   const [bodyRegion, setBodyRegion] = useState<BodyRegionId | ''>(initialRegion ?? '')
@@ -21,22 +24,32 @@ export function NewLogPage() {
   const [painScore, setPainScore] = useState<number>(5)
   const [tags, setTags] = useState('')
   const [notes, setNotes] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
+    
     if (!bodyRegion) {
-      alert('Please select a body region')
+      setError('Please select a body region')
       return
     }
-    // TODO (PR-03): Persist to IndexedDB via Dexie
-    console.log('Saving log:', {
-      bodyRegion,
-      datetime,
-      painScore,
-      tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      notes,
-    })
-    navigate('/logs')
+
+    try {
+      const tagArray = tags.split(',').map((t) => t.trim()).filter(Boolean)
+      
+      await createLog({
+        title: `${BODY_REGION_LABELS[bodyRegion as BodyRegionId]}`,
+        description: notes || undefined,
+        body_parts: [bodyRegion as BodyRegionId, ...tagArray],
+        severity: painScore,
+        date: new Date(datetime).toISOString(),
+      })
+
+      navigate('/logs')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save log')
+    }
   }
 
   return (
@@ -45,6 +58,12 @@ export function NewLogPage() {
         ← Back to body
       </Link>
       <h1 className="text-xl font-semibold text-slate-800 mb-6">New Symptom Log</h1>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Body Region - required */}
@@ -141,9 +160,10 @@ export function NewLogPage() {
         <div className="pt-2">
           <button
             type="submit"
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+            disabled={isSaving}
+            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-white font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save Log
+            {isSaving ? 'Saving...' : 'Save Log'}
           </button>
         </div>
       </form>

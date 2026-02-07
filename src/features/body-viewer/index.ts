@@ -3,6 +3,8 @@
  */
 export { BodyViewer } from './BodyViewer'
 export { BodyModel } from './BodyModel'
+export { BioDigitalViewer } from './BioDigitalViewer'
+export { mapAnatomyToBodyRegion, getRegionFromAnatomy } from './anatomyMapping'
 export {
   BODY_REGIONS,
   BODY_REGION_LABELS,
