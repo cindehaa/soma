@@ -9,7 +9,6 @@ const nav = [
   { to: '/family-history', label: 'Family History' },
   { to: '/health-profile', label: 'Health Profile' },
   { to: '/profile', label: 'Profile' },
-  { to: '/analysis-results', label: 'Analysis Results' },
 ]
 
 // Sun icon for light mode
