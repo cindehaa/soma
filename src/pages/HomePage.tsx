@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useAuth0 } from '@auth0/auth0-react'
 import type { BodyRegionId } from '../types'
 import { BodyViewer } from '../features/body-viewer/BodyViewer'
 import BookModel from '../features/book/BookModel'
@@ -7,6 +8,8 @@ import {
   FamilyHealthHistoryPage,
   DoctorAppointmentPage,
   AIInsightsPage,
+  MedicalLogsPage,
+  HealthProfilePage,
 } from '../features/book/pages'
 import { useAppStore } from '../store'
 import { PageContainer } from '../components/PageContainer'
@@ -22,6 +25,9 @@ export function HomePage() {
   const selectedBodyRegion = useAppStore((s) => s.selectedBodyRegion)
   const setSelectedBodyRegion = useAppStore((s) => s.setSelectedBodyRegion)
 
+  // Get user from Auth0
+  const { user } = useAuth0()
+
   // Body part click: show HTML overlay (no second Canvas) so body keeps working
   useEffect(() => {
     if (selectedBodyRegion) {
@@ -30,11 +36,13 @@ export function HomePage() {
     }
   }, [selectedBodyRegion, setSelectedBodyRegion])
 
+  const userId = user?.sub ?? '';
   const bookmarks = [
-    { label: 'Family history', component: <FamilyHealthHistoryPage recordedOnly /> },
+    { label: 'Medical Logs', component: <MedicalLogsPage userId={userId} /> },
     { label: 'Appointments', component: <DoctorAppointmentPage /> },
-    { label: 'AI insights', component: <AIInsightsPage /> },
-  ]
+    { label: 'Family history', component: <FamilyHealthHistoryPage recordedOnly userId={userId} /> },
+    { label: 'Health Profile', component: <HealthProfilePage userId={userId} /> },
+  ];
 
   return (
     <PageContainer fullWidth>
@@ -56,10 +64,10 @@ export function HomePage() {
           {bookVisible ? (
             /* Even split: book left 50%, body right 50% */
             <div className="w-full flex flex-1 min-h-0">
-              <div className="w-1/2 flex items-center justify-center p-4 min-h-[600px] border-r border-white/10">
+              <div className="w-1/2 flex items-center justify-center p-4 min-h-[600px]">
                 <BookModel
-                  projectName="Health Tracker"
-                  authorName="Personal Health Journal"
+                  projectName="Soma"
+                  authorName={user?.name || "Personal Health Journal"}
                   bookmarks={bookmarks}
                   onClose={() => setBookVisible(false)}
                 />
